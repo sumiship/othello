@@ -13,7 +13,8 @@
       </div>
     </div>
     <div class="control">
-      <div class="button" @click="reset()">reset</div>
+      <div class="button" @click="restart()">reset</div>
+      <div class="button" v-if="pass" @click="doPass">pass</div>
     </div>
   </div>
 </template>
@@ -39,6 +40,7 @@ export default Vue.extend({
       fieldWidth: 8,
       fieldHeight: 8,
       ableCells: [],
+      pass: false,
     };
   },
   computed: {
@@ -51,11 +53,19 @@ export default Vue.extend({
     restart() {
       for (let i = 0; i < this.fieldHeight; i++) {
         for (let j = 0; j < this.fieldWidth; j++) {
-          this.fieldCells[i].splice(j, 1, 0);
+          if ((i == 3 && j == 3) || (i == 4 && j == 4)) {
+            this.fieldCells[i].splice(j, 1, -1);
+          } else if ((i == 3 && j == 4) || (i == 4 && j == 3)) {
+            this.fieldCells[i].splice(j, 1, 1);
+          } else {
+            this.fieldCells[i].splice(j, 1, 0);
+          }
         }
       }
       this.player = 1;
       this.gameEnd = false;
+      this.ableCells = [];
+      this.beforeAction();
     },
     ableReset() {
       for (let i = 0; i < this.fieldHeight; i++) {
@@ -112,6 +122,11 @@ export default Vue.extend({
       }
       return ret;
     },
+    doPass() {
+      this.pass = false;
+      this.player *= -1;
+      this.beforeAction();
+    },
     beforeAction() {
       for (let i = 0; i < this.fieldHeight; i++) {
         for (let j = 0; j < this.fieldWidth; j++) {
@@ -153,12 +168,12 @@ export default Vue.extend({
           player
         );
       }
-      console.log(this.ableCells);
       this.ableReset();
       this.ableCells = [];
-      console.log(this.ableCells);
       this.player *= -1;
       this.beforeAction();
+      console.log(this.ableCells);
+      if (!this.ableCells[0]) this.pass = true;
     },
     judge(row, col, player) {
       let canPlacedCells = []; //[direction,count]
