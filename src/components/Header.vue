@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    5目並べ
+    オセロ
   </div>
 </template>
 <style scoped>

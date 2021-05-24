@@ -14,7 +14,6 @@
     </div>
     <div class="control">
       <div class="button" @click="reset()">reset</div>
-      <div class="button" @click="back()">まった</div>
     </div>
   </div>
 </template>
@@ -25,27 +24,21 @@ export default Vue.extend({
   data() {
     return {
       fieldCells: [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, -1, 1, 0, 0, 0],
+        [0, 0, 0, 1, -1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
       ],
       player: 1,
       gameEnd: false,
-      actionMemory: [],
-      fieldWidth: 15,
-      fieldHeight: 15,
+      // actionMemory: [],
+      fieldWidth: 8,
+      fieldHeight: 8,
+      ableCells: [],
     };
   },
   computed: {
@@ -55,7 +48,7 @@ export default Vue.extend({
     },
   },
   methods: {
-    reset() {
+    restart() {
       for (let i = 0; i < this.fieldHeight; i++) {
         for (let j = 0; j < this.fieldWidth; j++) {
           this.fieldCells[i].splice(j, 1, 0);
@@ -64,21 +57,29 @@ export default Vue.extend({
       this.player = 1;
       this.gameEnd = false;
     },
-    back() {
-      let posi = this.actionMemory.pop();
-      this.fieldCells[posi[0]].splice(posi[1], 1, 0);
-      this.player *= -1;
-      if (this.gameEnd) {
-        this.gameEnd = false;
-        for (let i = 0; i < this.fieldHeight; i++) {
-          for (let j = 0; j < this.fieldWidth; j++) {
-            if (this.fieldCells[i][j] == -2)
-              this.fieldCells[i].splice(j, 1, -1);
-            if (this.fieldCells[i][j] == 2) this.fieldCells[i].splice(j, 1, 1);
-          }
+    ableReset() {
+      for (let i = 0; i < this.fieldHeight; i++) {
+        for (let j = 0; j < this.fieldWidth; j++) {
+          if (this.fieldCells[i][j] == 7 || this.fieldCells[i][j] == -7)
+            this.fieldCells[i].splice(j, 1, 0);
         }
       }
     },
+    // back() {
+    //   let posi = this.actionMemory.pop();
+    //   this.fieldCells[posi[0]].splice(posi[1], 1, 0);
+    //   this.player *= -1;
+    //   if (this.gameEnd) {
+    //     this.gameEnd = false;
+    //     for (let i = 0; i < this.fieldHeight; i++) {
+    //       for (let j = 0; j < this.fieldWidth; j++) {
+    //         if (this.fieldCells[i][j] == -2)
+    //           this.fieldCells[i].splice(j, 1, -1);
+    //         if (this.fieldCells[i][j] == 2) this.fieldCells[i].splice(j, 1, 1);
+    //       }
+    //     }
+    //   }
+    // },
     cellStatus(col) {
       switch (col) {
         case 0:
@@ -87,13 +88,13 @@ export default Vue.extend({
           return "p1";
         case -1:
           return "p2";
-        case 2:
-          return "endP1";
-        case -2:
-          return "endP2";
+        case 7:
+          return "p1AbleCell";
+        case -7:
+          return "p2AbleCell";
       }
     },
-    derction(direction) {
+    direction(direction) {
       let ret = [0, 0];
       switch (direction) {
         case 1:
@@ -111,64 +112,107 @@ export default Vue.extend({
       }
       return ret;
     },
-    chainChange(position, chain, direction, player) {
-      let move = this.derction(direction);
-      for (let i = 0; i < chain; i++) {
-        this.fieldCells[position[0] + move[0] * i][position[1] + move[1] * i] =
-          player * 2;
+    beforeAction() {
+      for (let i = 0; i < this.fieldHeight; i++) {
+        for (let j = 0; j < this.fieldWidth; j++) {
+          if (this.fieldCells[i][j] == 0) {
+            let canPlacedCells = this.judge(i, j, this.player);
+            if (canPlacedCells[0]) {
+              this.ableCells.push([i, j, canPlacedCells]);
+              this.fieldCells[i].splice(j, 1, this.player * 7);
+              this.fieldCells[i][j] = this.player * 7;
+            }
+          }
+        }
       }
     },
-    putCell(row, col, setnum) {
-      let judges = [];
-      if (this.fieldCells[row][col] != 0 || this.gameEnd) return;
-      this.fieldCells[row].splice(col, 1, setnum);
-      for (let i = 0; i < 4; i++) {
-        let jud = this.judge(row, col, i + 1, setnum);
-        if (jud[0] >= 5) {
-          judges.push(jud);
-          this.gameEnd = true;
+    chainChange(row, col, direction, chain, player) {
+      let move = this.direction(direction);
+      for (let i = 1; i <= chain; i++) {
+        this.fieldCells[row + move[0] * i][col + move[1] * i] = player;
+      }
+      for (let i = -1; i >= chain; i--) {
+        this.fieldCells[row + move[0] * i][col + move[1] * i] = player;
+      }
+    },
+    putCell(row, col, player) {
+      let canPlacedCells;
+      if (this.fieldCells[row][col] != 7 * player || this.gameEnd) return;
+      for (let i = 0; i < this.ableCells.length; i++) {
+        if (this.ableCells[i][0] == row && this.ableCells[i][1] == col) {
+          canPlacedCells = this.ableCells[i][2];
         }
       }
-      if (this.gameEnd) {
-        for (let i = 0; i < judges.length; i++) {
-          this.chainChange(judges[i][1], judges[i][0], judges[i][2], setnum);
-        }
+      this.fieldCells[row].splice(col, 1, player);
+      for (let i = 0; i < canPlacedCells.length; i++) {
+        this.chainChange(
+          row,
+          col,
+          canPlacedCells[i][0],
+          canPlacedCells[i][1],
+          player
+        );
       }
-      let memo = [row, col];
-      this.actionMemory.push(memo);
-      // console.log(judges);
+      console.log(this.ableCells);
+      this.ableReset();
+      this.ableCells = [];
+      console.log(this.ableCells);
       this.player *= -1;
+      this.beforeAction();
     },
-    judge(row, col, direction, player) {
-      let move = this.derction(direction);
-      let moved = [0, 0];
-      let edge = [row, col];
-      let connectNum = 1;
+    judge(row, col, player) {
+      let canPlacedCells = []; //[direction,count]
+      let count;
+      let moved;
+      let directionAdd;
       for (let i = 1; i < 5; i++) {
-        moved = [row + move[0] * i, col + move[1] * i];
-        if (this.isAbleCell(moved[0], moved[1])) break;
-        // console.log("OK");
-        if (this.fieldCells[moved[0]][moved[1]] != player) {
-          break;
+        directionAdd = this.direction(i);
+        count = 0;
+        for (let j = 1; j < 10; j++) {
+          moved = [row + directionAdd[0] * j, col + directionAdd[1] * j];
+          if (
+            !this.isAbleCell(moved[0], moved[1]) ||
+            this.fieldCells[moved[0]][moved[1]] == 0 ||
+            this.fieldCells[moved[0]][moved[1]] == 7 * this.player
+          )
+            break;
+          if (this.fieldCells[moved[0]][moved[1]] == player * -1) count++;
+          if (this.fieldCells[moved[0]][moved[1]] == player) {
+            if (count > 0) canPlacedCells.push([i, count]);
+            break;
+          }
         }
-        connectNum++;
-      }
-      for (let i = 1; i < 5; i++) {
-        moved = [row + move[0] * -i, col + move[1] * -i];
-        if (this.isAbleCell(moved[0], moved[1])) break;
-        if (this.fieldCells[moved[0]][moved[1]] != player) {
-          break;
+        count = 0;
+        for (let j = 1; j < 10; j++) {
+          moved = [row + directionAdd[0] * -j, col + directionAdd[1] * -j];
+          if (
+            !this.isAbleCell(moved[0], moved[1]) ||
+            this.fieldCells[moved[0]][moved[1]] == 0 ||
+            this.fieldCells[moved[0]][moved[1]] == 7 * this.player
+          )
+            break;
+          if (this.fieldCells[moved[0]][moved[1]] == player * -1) count--;
+          if (this.fieldCells[moved[0]][moved[1]] == player) {
+            if (count < 0) canPlacedCells.push([i, count]);
+            break;
+          }
         }
-        edge = moved;
-        connectNum++;
       }
-      return [connectNum, edge, direction];
+      return canPlacedCells;
     },
     isAbleCell(row, col) {
-      if (row < 0 || row >= this.fieldHeight || col < 0 || row >= this.fieldWidth) return true;
-      // console.log("OK");
+      if (
+        row >= 0 &&
+        row < this.fieldHeight &&
+        col >= 0 &&
+        col < this.fieldWidth
+      )
+        return true;
       return false;
     },
+  },
+  mounted: function() {
+    this.beforeAction();
   },
 });
 </script>
@@ -212,10 +256,10 @@ export default Vue.extend({
 }
 .row {
   display: flex;
-  height: 6.666%;
+  height: 12.5%;
 }
 .cell {
-  width: 6.666%;
+  width: 12.5%;
   border-top: solid 1px;
   border-left: solid 1px;
 }
@@ -229,14 +273,14 @@ export default Vue.extend({
   background-color: mediumaquamarine;
   border-radius: 50%;
 }
-.endP1 {
+.p1AbleCell {
   height: 100%;
-  background-color: orangered;
+  border: 2px solid rgb(235, 124, 91);
   border-radius: 50%;
 }
-.endP2 {
+.p2AbleCell {
   height: 100%;
-  background-color: springgreen;
+  border: 2px solid rgb(84, 112, 103);
   border-radius: 50%;
 }
 .control {
@@ -258,7 +302,7 @@ export default Vue.extend({
     width: 400px;
     height: 400px;
   }
-  .control{
+  .control {
     width: 400px;
   }
 }
