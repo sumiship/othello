@@ -1,5 +1,13 @@
 <template>
   <div class="fieldContainer">
+    <div class="score">
+      <div class="p1Score" :style="{ width: p1score * 300 + 'px' }">
+        {{ p1score }}
+      </div>
+      <div class="p2Score" :style="{ width: p2score * 300 + 'px' }">
+        {{ p2score }}
+      </div>
+    </div>
     <div class="field" :class="border">
       <div class="row" v-for="(row, rowIndex) in fieldCells" :key="rowIndex">
         <div
@@ -41,6 +49,8 @@ export default Vue.extend({
       fieldHeight: 8,
       ableCells: [],
       pass: false,
+      p1score: 0,
+      p2score: 0,
     };
   },
   computed: {
@@ -75,21 +85,6 @@ export default Vue.extend({
         }
       }
     },
-    // back() {
-    //   let posi = this.actionMemory.pop();
-    //   this.fieldCells[posi[0]].splice(posi[1], 1, 0);
-    //   this.player *= -1;
-    //   if (this.gameEnd) {
-    //     this.gameEnd = false;
-    //     for (let i = 0; i < this.fieldHeight; i++) {
-    //       for (let j = 0; j < this.fieldWidth; j++) {
-    //         if (this.fieldCells[i][j] == -2)
-    //           this.fieldCells[i].splice(j, 1, -1);
-    //         if (this.fieldCells[i][j] == 2) this.fieldCells[i].splice(j, 1, 1);
-    //       }
-    //     }
-    //   }
-    // },
     cellStatus(col) {
       switch (col) {
         case 0:
@@ -127,7 +122,10 @@ export default Vue.extend({
       this.player *= -1;
       this.beforeAction();
     },
+    end() {},
     beforeAction() {
+      this.p1score = 0;
+      this.p2score = 0;
       for (let i = 0; i < this.fieldHeight; i++) {
         for (let j = 0; j < this.fieldWidth; j++) {
           if (this.fieldCells[i][j] == 0) {
@@ -137,7 +135,8 @@ export default Vue.extend({
               this.fieldCells[i].splice(j, 1, this.player * 7);
               this.fieldCells[i][j] = this.player * 7;
             }
-          }
+          } else if (this.fieldCells[i][j] == 1) this.p1score++;
+          else this.p2score++;
         }
       }
     },
@@ -172,8 +171,18 @@ export default Vue.extend({
       this.ableCells = [];
       this.player *= -1;
       this.beforeAction();
-      console.log(this.ableCells);
-      if (!this.ableCells[0]) this.pass = true;
+      if (!this.ableCells[0]) {
+        this.player *= -1;
+        this.beforeAction();
+        if (!this.ableCells[0]) this.end();
+        else {
+          this.ableReset();
+          this.player *= -1;
+          this.ableCells = [];
+          this.beforeAction;
+          this.pass = true;
+        }
+      }
     },
     judge(row, col, player) {
       let canPlacedCells = []; //[direction,count]
@@ -225,6 +234,9 @@ export default Vue.extend({
         return true;
       return false;
     },
+    searchBestCell() {
+      this.ableCells;
+    },
   },
   mounted: function() {
     this.beforeAction();
@@ -249,6 +261,25 @@ export default Vue.extend({
   height: calc(100vh - 64px);
   padding-top: 120px;
   background-color: rgb(217, 223, 224);
+}
+.p1Score {
+  background-color: darksalmon;
+  border-radius: 30px;
+  text-align: center;
+}
+.p2Score {
+  background-color: mediumaquamarine;
+  border-radius: 30px;
+  text-align: center;
+}
+.score {
+  width: 90vw;
+  margin: 0px auto 10px;
+  padding: 5px 10px;
+  background-color: rgb(156, 206, 238);
+  border-radius: 30px;
+  display: flex;
+  justify-content: space-around;
 }
 .field {
   width: 90vw;
@@ -318,6 +349,9 @@ export default Vue.extend({
     height: 400px;
   }
   .control {
+    width: 400px;
+  }
+  .score {
     width: 400px;
   }
 }
