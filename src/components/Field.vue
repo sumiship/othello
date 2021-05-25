@@ -344,18 +344,13 @@ export default Vue.extend({
       let maxScore = -1000;
       let score;
       let retArr = [-1, -1];
-      console.log(cells);
       for (let i = 0; i < cells.length; i++) {
         score = 0;
         score += Math.abs(cells[i][2][0][1]);
-        console.log("-----");
-        console.log(score);
         score += scoreBoard[cells[i][0]][cells[i][1]];
-        console.log(score);
         if (score > maxScore) {
           retArr[0] = cells[i][0];
           retArr[1] = cells[i][1];
-          console.log(retArr);
           maxScore = score;
         }
       }
