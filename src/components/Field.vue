@@ -27,12 +27,51 @@
           :key="colIndex"
           @click="putCell(rowIndex, colIndex, player)"
         >
+          <p v-if="rowIndex == finalPutCell[0] && colIndex == finalPutCell[1]">
+            ・
+          </p>
           <div :class="cellStatus(col)"></div>
         </div>
       </div>
     </div>
     <div class="control">
-      <div class="button" @click="restart()">reset</div>
+      <div class="button" v-if="!gameEnd" @click="restart()">reset</div>
+      <div
+        class="button"
+        v-if="gameEnd"
+        @click="
+          restart();
+          gameEnd = false;
+          beforeAction();
+        "
+      >
+        start
+      </div>
+      <div
+        class="button"
+        v-if="gameEnd"
+        @click="
+          restart();
+          gameEnd = false;
+          isCPU = 1;
+          beforeAction();
+          cpuPut();
+        "
+      >
+        CPU(先手)
+      </div>
+      <div
+        class="button"
+        v-if="gameEnd"
+        @click="
+          restart();
+          gameEnd = false;
+          isCPU = -1;
+          beforeAction();
+        "
+      >
+        CPU(後手)
+      </div>
       <div class="button" v-if="pass" @click="doPass">pass</div>
     </div>
   </div>
@@ -54,15 +93,17 @@ export default Vue.extend({
         [0, 0, 0, 0, 0, 0, 0, 0],
       ],
       player: 1,
-      gameEnd: false,
+      gameEnd: true,
       gameMessage: "",
       // actionMemory: [],
       fieldWidth: 8,
       fieldHeight: 8,
       ableCells: [],
       pass: false,
-      p1score: 0,
-      p2score: 0,
+      p1score: 2,
+      p2score: 2,
+      isCPU: 0,
+      finalPutCell: [-1, -1],
     };
   },
   computed: {
@@ -85,10 +126,12 @@ export default Vue.extend({
         }
       }
       this.player = 1;
-      this.gameEnd = false;
       this.gameMessage = "";
+      this.gameEnd = true;
       this.ableCells = [];
-      this.beforeAction();
+      this.isCPU = 0;
+      this.finalPutCell = [-1, -1];
+      // this.beforeAction();
     },
     ableReset() {
       for (let i = 0; i < this.fieldHeight; i++) {
@@ -134,6 +177,7 @@ export default Vue.extend({
       this.pass = false;
       this.player *= -1;
       this.beforeAction();
+      if (this.isCPU == this.player) this.cpuPut();
     },
     beforeAction() {
       this.p1score = 0;
@@ -154,15 +198,24 @@ export default Vue.extend({
     },
     chainChange(row, col, direction, chain, player) {
       let move = this.direction(direction);
-      for (let i = 1; i <= chain; i++) {
-        this.fieldCells[row + move[0] * i][col + move[1] * i] = player;
-      }
-      for (let i = -1; i >= chain; i--) {
-        this.fieldCells[row + move[0] * i][col + move[1] * i] = player;
-      }
+      let put = function(i, field) {
+        field[row + move[0] * i].splice(col + move[1] * i, 1, player);
+        if (i > 0) {
+          i++;
+          if (i <= chain) setTimeout(put, 100, i, field);
+        } else {
+          i--;
+          if (i >= chain) setTimeout(put, 100, i, field);
+        }
+      };
+      if (chain > 0) setTimeout(put, 100, 1, this.fieldCells);
+      else setTimeout(put, 100, -1, this.fieldCells);
     },
     putCell(row, col, player) {
+      this.finalPutCell[0] = row;
+      this.finalPutCell[1] = col;
       let canPlacedCells;
+      let maxChain = 0;
       if (this.fieldCells[row][col] != 7 * player || this.gameEnd) return;
       for (let i = 0; i < this.ableCells.length; i++) {
         if (this.ableCells[i][0] == row && this.ableCells[i][1] == col) {
@@ -171,6 +224,8 @@ export default Vue.extend({
       }
       this.fieldCells[row].splice(col, 1, player);
       for (let i = 0; i < canPlacedCells.length; i++) {
+        if (maxChain < Math.abs(canPlacedCells[i][1]))
+          maxChain = Math.abs(canPlacedCells[i][1]);
         this.chainChange(
           row,
           col,
@@ -179,28 +234,32 @@ export default Vue.extend({
           player
         );
       }
-      this.ableReset();
-      this.ableCells = [];
-      this.player *= -1;
-      this.beforeAction();
-      if (!this.ableCells[0]) {
+      let afterPutCell = () => {
+        this.ableReset();
+        this.ableCells = [];
         this.player *= -1;
         this.beforeAction();
         if (!this.ableCells[0]) {
-          this.gameEnd = true;
-          if (this.player == 1) {
-            this.gameMessage = "P1 WIN (" + this.p1score + ")";
-          } else {
-            this.gameMessage = "P2 WIN (" + this.p2score + ")";
-          }
-        } else {
-          this.ableReset();
           this.player *= -1;
-          this.ableCells = [];
-          this.beforeAction;
-          this.pass = true;
+          this.beforeAction();
+          if (!this.ableCells[0]) {
+            this.gameEnd = true;
+            if (this.player == 1) {
+              this.gameMessage = "P1 WIN (" + this.p1score + ")";
+            } else {
+              this.gameMessage = "P2 WIN (" + this.p2score + ")";
+            }
+          } else {
+            this.ableReset();
+            this.player *= -1;
+            this.ableCells = [];
+            this.beforeAction;
+            this.pass = true;
+          }
         }
-      }
+        if (this.isCPU == this.player) this.cpuPut();
+      };
+      setTimeout(afterPutCell, 100 * (maxChain + 1));
     },
     judge(row, col, player) {
       let canPlacedCells = []; //[direction,count]
@@ -252,12 +311,17 @@ export default Vue.extend({
         return true;
       return false;
     },
-    searchBestCell() {
-      this.ableCells;
+    cpuPut() {
+      if (this.ableCells[0]) {
+        let putCell = this.ableCells[0];
+        this.putCell(putCell[0], putCell[1], this.player);
+      } else {
+        this.doPass();
+      }
     },
   },
   mounted: function() {
-    this.beforeAction();
+    // this.beforeAction();
   },
 });
 </script>
@@ -340,6 +404,16 @@ export default Vue.extend({
   width: 12.5%;
   border-top: solid 1px;
   border-left: solid 1px;
+  position: relative;
+}
+.cell p {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  transform: translateY(-50%);
+  font-size: 40px;
+  color: deeppink;
 }
 .p1 {
   height: 100%;
