@@ -474,12 +474,12 @@ export default Vue.extend({
 }
 .p1AbleCell {
   height: 100%;
-  border: 2px solid rgb(235, 124, 91);
+  border: 2px solid rgb(209, 102, 70);
   border-radius: 50%;
 }
 .p2AbleCell {
   height: 100%;
-  border: 2px solid rgb(84, 112, 103);
+  border: 2px solid rgb(104, 143, 131);
   border-radius: 50%;
 }
 .control {
