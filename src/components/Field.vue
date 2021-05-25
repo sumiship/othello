@@ -1,10 +1,21 @@
 <template>
   <div class="fieldContainer">
+    <div class="message">
+      <p>{{ gameMessage }}</p>
+    </div>
     <div class="score">
-      <div class="p1Score" :style="{ width: p1score * 300 + 'px' }">
+      <div
+        class="p1Score"
+        :class="{ p1ScoreBorder: player == 1 }"
+        :style="{ width: p1score * 300 + 20 + 'px' }"
+      >
         {{ p1score }}
       </div>
-      <div class="p2Score" :style="{ width: p2score * 300 + 'px' }">
+      <div
+        class="p2Score"
+        :class="{ p2ScoreBorder: player == -1 }"
+        :style="{ width: p2score * 300 + 20 + 'px' }"
+      >
         {{ p2score }}
       </div>
     </div>
@@ -44,6 +55,7 @@ export default Vue.extend({
       ],
       player: 1,
       gameEnd: false,
+      gameMessage: "",
       // actionMemory: [],
       fieldWidth: 8,
       fieldHeight: 8,
@@ -74,6 +86,7 @@ export default Vue.extend({
       }
       this.player = 1;
       this.gameEnd = false;
+      this.gameMessage = "";
       this.ableCells = [];
       this.beforeAction();
     },
@@ -122,7 +135,6 @@ export default Vue.extend({
       this.player *= -1;
       this.beforeAction();
     },
-    end() {},
     beforeAction() {
       this.p1score = 0;
       this.p2score = 0;
@@ -174,8 +186,14 @@ export default Vue.extend({
       if (!this.ableCells[0]) {
         this.player *= -1;
         this.beforeAction();
-        if (!this.ableCells[0]) this.end();
-        else {
+        if (!this.ableCells[0]) {
+          this.gameEnd = true;
+          if (this.player == 1) {
+            this.gameMessage = "P1 WIN (" + this.p1score + ")";
+          } else {
+            this.gameMessage = "P2 WIN (" + this.p2score + ")";
+          }
+        } else {
           this.ableReset();
           this.player *= -1;
           this.ableCells = [];
@@ -259,18 +277,32 @@ export default Vue.extend({
 <style scoped>
 .fieldContainer {
   height: calc(100vh - 64px);
-  padding-top: 120px;
+  padding-top: 40px;
   background-color: rgb(217, 223, 224);
+}
+.message {
+  height: 68px;
+}
+.message p {
+  text-align: center;
+  line-height: 48px;
+  font-size: 31px;
 }
 .p1Score {
   background-color: darksalmon;
   border-radius: 30px;
   text-align: center;
 }
+.p1ScoreBorder {
+  border: 2px solid rgb(153, 104, 88);
+}
 .p2Score {
   background-color: mediumaquamarine;
   border-radius: 30px;
   text-align: center;
+}
+.p2ScoreBorder {
+  border: 2px solid rgb(71, 126, 107);
 }
 .score {
   width: 90vw;
