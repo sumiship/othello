@@ -1,7 +1,9 @@
 <template>
   <div class="fieldContainer">
     <div class="message">
-      <p>{{ gameMessage }}</p>
+      <p class="p1Win" v-if="win == 1">P1 WIN ({{ p1score }})</p>
+      <p class="p2Win" v-if="win == -1">P2 WIN ({{ p2score }})</p>
+      <p class="draw" v-if="win == 0">DRAW ({{ p1score }})</p>
     </div>
     <div class="score">
       <div
@@ -42,6 +44,7 @@
         @click="
           restart();
           gameEnd = false;
+          player = 1;
           beforeAction();
         "
       >
@@ -53,6 +56,7 @@
         @click="
           restart();
           gameEnd = false;
+          player = 1;
           isCPU = 1;
           beforeAction();
           cpuPut();
@@ -66,6 +70,7 @@
         @click="
           restart();
           gameEnd = false;
+          player = 1;
           isCPU = -1;
           beforeAction();
         "
@@ -92,7 +97,7 @@ export default Vue.extend({
         [0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
       ],
-      player: 1,
+      player: 0,
       gameEnd: true,
       gameMessage: "",
       // actionMemory: [],
@@ -104,6 +109,7 @@ export default Vue.extend({
       p2score: 2,
       isCPU: 0,
       finalPutCell: [-1, -1],
+      win: 10,
     };
   },
   computed: {
@@ -129,7 +135,9 @@ export default Vue.extend({
       this.gameMessage = "";
       this.gameEnd = true;
       this.ableCells = [];
+      this.player = 0;
       this.isCPU = 0;
+      this.win = 10;
       this.finalPutCell = [-1, -1];
       // this.beforeAction();
     },
@@ -244,10 +252,13 @@ export default Vue.extend({
           this.beforeAction();
           if (!this.ableCells[0]) {
             this.gameEnd = true;
-            if (this.player == 1) {
-              this.gameMessage = "P1 WIN (" + this.p1score + ")";
+            this.player = 0;
+            if (this.p1score > this.p2score) {
+              this.win = 1;
+            } else if (this.p1score < this.p2score) {
+              this.win = -1;
             } else {
-              this.gameMessage = "P2 WIN (" + this.p2score + ")";
+              this.win = 0;
             }
           } else {
             this.ableReset();
@@ -313,11 +324,42 @@ export default Vue.extend({
     },
     cpuPut() {
       if (this.ableCells[0]) {
-        let putCell = this.ableCells[0];
+        let putCell = this.searchBestCell(this.ableCells);
         this.putCell(putCell[0], putCell[1], this.player);
       } else {
         this.doPass();
       }
+    },
+    searchBestCell(cells) {
+      const scoreBoard = [
+        [20, -2, 8, 8, 8, 8, -2, 20],
+        [-2, -8, -6, -6, -6, -6, -6, -2],
+        [8, -6, 0, 0, 0, 0, -6, 8],
+        [8, -6, 0, 0, 0, 0, -6, 8],
+        [8, -6, 0, 0, 0, 0, -6, 8],
+        [8, -6, 0, 0, 0, 0, -6, 8],
+        [-2, -8, -6, -6, -6, -6, -8, -2],
+        [20, -2, 8, 8, 8, 8, -2, 20],
+      ];
+      let maxScore = -1000;
+      let score;
+      let retArr = [-1, -1];
+      console.log(cells);
+      for (let i = 0; i < cells.length; i++) {
+        score = 0;
+        score += Math.abs(cells[i][2][0][1]);
+        console.log("-----");
+        console.log(score);
+        score += scoreBoard[cells[i][0]][cells[i][1]];
+        console.log(score);
+        if (score > maxScore) {
+          retArr[0] = cells[i][0];
+          retArr[1] = cells[i][1];
+          console.log(retArr);
+          maxScore = score;
+        }
+      }
+      return retArr;
     },
   },
   mounted: function() {
@@ -351,6 +393,12 @@ export default Vue.extend({
   text-align: center;
   line-height: 48px;
   font-size: 31px;
+}
+.p1Win {
+  color: darksalmon;
+}
+.p2Win {
+  color: mediumaquamarine;
 }
 .p1Score {
   background-color: darksalmon;
