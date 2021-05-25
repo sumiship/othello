@@ -402,19 +402,21 @@ export default Vue.extend({
 }
 .p1Score {
   background-color: darksalmon;
+  border: 2px solid darksalmon;
   border-radius: 30px;
   text-align: center;
 }
 .p1ScoreBorder {
-  border: 2px solid rgb(153, 104, 88);
+  border-color: rgb(153, 104, 88);
 }
 .p2Score {
   background-color: mediumaquamarine;
+  border: 2px solid mediumaquamarine;
   border-radius: 30px;
   text-align: center;
 }
 .p2ScoreBorder {
-  border: 2px solid rgb(71, 126, 107);
+  border-color: rgb(71, 126, 107);
 }
 .score {
   width: 90vw;
@@ -496,6 +498,7 @@ export default Vue.extend({
   background-color: paleturquoise;
   padding: 0 7px;
   border-radius: 12px;
+  cursor: pointer;
 }
 @media screen and (min-width: 445px) {
   .field {
