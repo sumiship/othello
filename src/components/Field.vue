@@ -138,6 +138,8 @@ export default Vue.extend({
       this.player = 0;
       this.isCPU = 0;
       this.win = 10;
+      this.p1score = 2;
+      this.p2score = 2;
       this.finalPutCell = [-1, -1];
       // this.beforeAction();
     },
